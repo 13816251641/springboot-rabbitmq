@@ -1,5 +1,6 @@
 package com.winning.config;
 
+import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
@@ -13,9 +14,91 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 
 @Configuration
 public class MyRabbitMqConfig {
+    public static final String BUSINESS_EXCHANGE_NAME="winning.dcg.event.collector.exchange";
+
+    public static final String BUSINESS_QUEUE_NAME="winning.dcg.event.collector.queue";
+
+    public static final String BUSINESS_ROUTING_KEY="winning.dcg.event.collector.queue";
+
+    public static final String DEAD_EXCHANGE_NAME="winning.dcg.event.collector.dead.exchange";
+
+    public static final String DEAD_ROUTING_KEY="winning.dcg.event.collector.dead.exchange";
+
+    public static final String DEAD_QUEUE_NAME="winning.dcg.event.collector.dead.queue";
+
+    /**
+     * 我发现以下创建元数据(交换机,队列,绑定关系)的代码只有在代码中调用RabbitTemplate后
+     * 才会去RabbitMq中创建元数据,项目启动时是不会去创建的!!!
+     * 创建业务交换机(Direct)
+     */
+    @Bean
+    public Exchange createBusinessExchange(){
+        return new DirectExchange(BUSINESS_EXCHANGE_NAME);
+    }
+
+    /**
+     * 创建死信交换机(Direct)
+     * @return
+     */
+    @Bean
+    public Exchange createDeadLetterExchange() {
+        return new DirectExchange(DEAD_EXCHANGE_NAME);
+    }
+
+    /**
+     * 创建死信队列
+     * @return
+     */
+    @Bean
+    public Queue createDeadQueue() {
+        return new Queue(DEAD_QUEUE_NAME,true);
+    }
+
+    /**
+     * 配置业务队列并设置持久化
+     *
+     * @return
+     */
+    @Bean
+    public Queue createBusinessQueue() {
+        Map<String, Object> args = new HashMap<>(2);
+        /*声明死信交换机*/
+        args.put("x-dead-letter-exchange",DEAD_EXCHANGE_NAME);
+        /*声明死信路由键*/
+        args.put("x-dead-letter-routing-key", DEAD_ROUTING_KEY);
+        return QueueBuilder.durable(BUSINESS_QUEUE_NAME).withArguments(args).build();
+    }
+
+
+    /**
+     * 将业务队列绑定到业务交换机上，并设置消息分发的路由键
+     *
+     * @return
+     */
+    @Bean
+    public Binding bindBusinessExchangeAndQueue() {
+        /*链式写法: 用指定的路由键将队列绑定到交换机 */
+        return new Binding(BUSINESS_QUEUE_NAME, Binding.DestinationType.QUEUE, BUSINESS_EXCHANGE_NAME, BUSINESS_ROUTING_KEY, null);
+    }
+
+    /**
+     * 将死信队列绑定到死信交换机上
+     *
+     * @return
+     */
+    @Bean
+    public Binding bindDeadExchangeAndDeadnQueue() {
+        /*链式写法: 用指定的路由键将队列绑定到交换机*/
+        return new Binding(DEAD_QUEUE_NAME, Binding.DestinationType.QUEUE, DEAD_EXCHANGE_NAME, DEAD_ROUTING_KEY, null);
+    }
+
+
+
     @Bean
     /* 加了@ConditionalOnSingleCandidate这个注解会导致自己定义的配置类无法注入 no reason */
     /*@ConditionalOnSingleCandidate(ConnectionFactory.class)*/

@@ -1,5 +1,6 @@
 package com.winning.controller;
 
+import com.winning.config.MyRabbitMqConfig;
 import com.winning.service.ProduceService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -21,24 +22,15 @@ public class RabbitController {
     @Autowired
     private ProduceService produceService;
 
+
     /**
-        安全发送
+        将消息发送给my.direct.exchange交换机,
+        如果没有创建交换机的话要先创建
      */
     @GetMapping("/send")
-    public void sendInsure(){
+    public void send(){
         produceService.sendDirect();
         log.info("success");
-    }
-
-    /*
-       批量发送到direct类型的交换机
-     */
-    @GetMapping("/multisend")
-    public void multiSend(){
-        String message = "hello";
-        for(int i=0;i<100;i++){
-            rabbitTemplate.convertAndSend("exchange-direct","myqueue",message);
-        }
     }
 
     /*

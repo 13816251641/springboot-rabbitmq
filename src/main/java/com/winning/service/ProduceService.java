@@ -34,7 +34,7 @@ public class ProduceService {
             Message message = MessageBuilder.withBody(s.getBytes()).
                     setContentType(MessageProperties.CONTENT_TYPE_JSON).
                     setCorrelationId(uuid).build();
-            rabbitTemplate.convertAndSend("my.direct.exchange", "my.direct.queue1", message, cd);
+            rabbitTemplate.convertAndSend("my.direct.exchange", "my.direct.queue", message, cd);
         } catch (Exception e) {
             log.error(e.getMessage());
         }
