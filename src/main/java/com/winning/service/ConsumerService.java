@@ -3,6 +3,7 @@ package com.winning.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.Channel;
 import com.winning.dao.StudentMapper;
+import com.winning.entity.EventNotifierInputDTO;
 import com.winning.entity.Student;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
@@ -22,6 +23,16 @@ import java.util.concurrent.TimeUnit;
 public class ConsumerService {
     @Autowired
     private StudentMapper studentMapper;
+
+
+    @RabbitListener(queues = "winning.dcg.event.collector.queue")
+    public void consume(Message message,Channel channel) throws Exception{
+        log.info("consume123321");
+        EventNotifierInputDTO dto = new ObjectMapper().readValue(message.getBody(), EventNotifierInputDTO.class);
+        int i = 5/0;
+    }
+
+
 
     /*
         receiveOne和receiveTwo都是监听一个消息队列并且默认情况下如果不配置prefetch
