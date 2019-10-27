@@ -19,17 +19,17 @@ import java.util.Map;
 
 @Configuration
 public class MyRabbitMqConfig {
-    public static final String BUSINESS_EXCHANGE_NAME="winning.dcg.event.collector.exchange";
+    private static final String BUSINESS_EXCHANGE_NAME="winning.dcg.event.collector.exchange";
 
-    public static final String BUSINESS_QUEUE_NAME="winning.dcg.event.collector.queue";
+    private static final String BUSINESS_QUEUE_NAME="winning.dcg.event.collector.queue";
 
-    public static final String BUSINESS_ROUTING_KEY="winning.dcg.event.collector.queue";
+    private static final String BUSINESS_ROUTING_KEY="winning.dcg.event.collector.queue";
 
-    public static final String DEAD_EXCHANGE_NAME="winning.dcg.event.collector.dead.exchange";
+    private static final String DEAD_EXCHANGE_NAME="winning.dcg.event.collector.dead.exchange";
 
-    public static final String DEAD_ROUTING_KEY="winning.dcg.event.collector.dead.exchange";
+    private static final String DEAD_ROUTING_KEY="winning.dcg.event.collector.dead.exchange";
 
-    public static final String DEAD_QUEUE_NAME="winning.dcg.event.collector.dead.queue";
+    private static final String DEAD_QUEUE_NAME="winning.dcg.event.collector.dead.queue";
 
     /**
      * 我发现以下创建元数据(交换机,队列,绑定关系)的代码只有在代码中调用RabbitTemplate后
@@ -51,7 +51,7 @@ public class MyRabbitMqConfig {
     }
 
     /**
-     * 创建死信队列
+     * 创建死信队列并设置该队列是持久化的
      * @return
      */
     @Bean

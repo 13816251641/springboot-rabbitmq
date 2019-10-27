@@ -1,14 +1,15 @@
 package com.winning.controller;
 
 import com.winning.config.MyRabbitMqConfig;
+import com.winning.entity.MyDTO;
 import com.winning.service.ProduceService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 @RestController
@@ -22,15 +23,26 @@ public class RabbitController {
     @Autowired
     private ProduceService produceService;
 
+    @PostMapping("/test_mydto")
+    public void testMyDTO(@RequestBody MyDTO myDTO){
+        log.info(myDTO.toString());
+        System.out.println(myDTO.getLocalDate());
+    }
+
 
     /**
         将消息发送给my.direct.exchange交换机,
         如果没有创建交换机的话要先创建
      */
     @GetMapping("/send")
-    public void send(){
+    @ResponseBody
+    public MyDTO send(){
         produceService.sendDirect();
         log.info("success");
+        MyDTO myDTO = new MyDTO();
+        myDTO.setLocalDate(LocalDate.now());
+        myDTO.setBirth(new Date());
+        return myDTO;
     }
 
     /*
