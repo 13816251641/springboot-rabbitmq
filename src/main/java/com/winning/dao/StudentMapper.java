@@ -1,3 +1,4 @@
+/*
 package com.winning.dao;
 
 import com.winning.entity.Student;
@@ -9,4 +10,4 @@ public interface StudentMapper extends Mapper<Student> {
 
     public void insertWithoutId(Student student);
 
-}
+}*/
