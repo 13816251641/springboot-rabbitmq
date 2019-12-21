@@ -9,9 +9,9 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 public class ExchangeCheckCallback implements RabbitTemplate.ConfirmCallback{
 
     /**
-     * 当消息发送到交换机（exchange）时，该方法被调用.
-     * 1.如果消息没有到exchange,则 ack=false
-     * 2.如果消息到达exchange,则 ack=true
+     * 当消息发送到交换机（exchange）时，该方法被回调.
+     * 1.如果消息没有到exchange(可能exchange的名字写错了),则 ack=false
+     * 2.如果消息到达exchange(消息已经写入日志(已落盘)),则 ack=true
      * @param correlationData
      * @param ack
      * @param cause
@@ -20,6 +20,7 @@ public class ExchangeCheckCallback implements RabbitTemplate.ConfirmCallback{
     public void confirm(CorrelationData correlationData, boolean ack, String cause) {
         log.info("ExchangeCheckCallback,回调id:"+correlationData);
         if(ack){
+            /* 当ack为ture的时候,代表消息已经写入日志并已落入磁盘 */
              log.info("消息发送到exchange成功");
             /*TODO 修改消息表的消息状态为成功*/
         }else{

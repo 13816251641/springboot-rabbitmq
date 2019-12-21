@@ -72,7 +72,6 @@ public class ConsumerService {
             String s = new String(message.getBody());
             log.info("receiveTwo收到消息:" + s);
             channel.basicAck(message.getMessageProperties().getDeliveryTag(),false);
-            /* true退回到queue中,false如果没有绑定死信队列,消息丢失 */
             /*
                如果ack方式为manual的话就必须手工应答,
                true表示回退到queue中,false表示如果没有
