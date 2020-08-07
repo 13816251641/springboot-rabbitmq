@@ -34,7 +34,7 @@ public class SpringbootRabbitmqApplicationTests {
         /* 创建queue */
         amqpAdmin.declareQueue(new Queue("my.fanout.queue",true));
         /* 创建绑定关系 */
-        amqpAdmin.declareBinding(new Binding("my.fanout.queue",Binding.DestinationType.QUEUE,"my.fanout.exchange","hello",null));
+        amqpAdmin.declareBinding(new Binding("my.fanout.queue",Binding.DestinationType.QUEUE,"my.fanout.exchange","bye",null));
     }
 
 
@@ -48,7 +48,7 @@ public class SpringbootRabbitmqApplicationTests {
         /* 创建queue */
         amqpAdmin.declareQueue(new Queue("my.direct.queue",true));
         /* 创建绑定关系 */
-        amqpAdmin.declareBinding(new Binding("my.direct.queue",Binding.DestinationType.QUEUE,"my.direct.exchange","my.direct.queue",null));
+        amqpAdmin.declareBinding(new Binding("my.direct.queue",Binding.DestinationType.QUEUE,"my.direct.exchange","hello",null));
     }
 
 
@@ -70,7 +70,7 @@ public class SpringbootRabbitmqApplicationTests {
         map.put("msg","这是springboot发送的消息哦");
         map.put("age",32);
         /*对象被默认序列化以后发送出去*/
-        rabbitTemplate.convertAndSend("my.direct.exchange","my.direct.queue",map);
+        rabbitTemplate.convertAndSend("my.direct.exchange","hello",map);
     }
 
     /**
@@ -92,7 +92,7 @@ public class SpringbootRabbitmqApplicationTests {
         Map<String,Object> map = new HashMap<>();
         map.put("msg","这是springboot发送的消息");
         map.put("age",32);
-        rabbitTemplate.convertAndSend("my.fanout.exchange","bye",map);
+        rabbitTemplate.convertAndSend("my.fanout.exchange","love",map);
     }
 
 }
