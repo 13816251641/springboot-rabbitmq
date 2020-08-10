@@ -1,5 +1,6 @@
 package com.winning;
 
+import com.winning.entity.Person;
 import com.winning.service.ProduceService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -64,24 +65,12 @@ public class SpringbootRabbitmqApplicationTests {
          */
         /*
            rabbitTemplate.convertAndSend(exchange,routeKey,object);
-           object默认当成消息体,只需要传入要发送的对象,自动序列化发送给rabbitmq;
-         */
-        Map<String,Object> map = new HashMap<>();
-        map.put("msg","这是springboot发送的消息哦");
-        map.put("age",32);
-        /*对象被默认序列化以后发送出去*/
-        rabbitTemplate.convertAndSend("my.direct.exchange","hello",map);
-    }
+           object默认当成消息体,只需要传入要发送的对象,自动序列化发送给rabbitmq,
+           因为rabbitTemplate已经配置好了自定义序列化方式!!!
+        */
 
-    /**
-       测试接收数据
-     */
-    @Test
-    public void testReceiveMessage(){
-        Object object = rabbitTemplate.receiveAndConvert("my.direct.queue");
-        /*class java.util.HashMap*/
-        System.out.println(object.getClass());
-        System.out.println(object);
+        Person person = new Person().setAge(29).setName("陆哥哥").setSex("男");
+        rabbitTemplate.convertAndSend("my.direct.exchange","hello",person);
     }
 
     /**

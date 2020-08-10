@@ -19,17 +19,17 @@ import java.util.Map;
 
 @Configuration
 public class MyRabbitMqConfig {
-    private static final String BUSINESS_EXCHANGE_NAME="winning.dcg.event.collector.exchange";
+    private static final String BUSINESS_EXCHANGE_NAME="my.direct.exchange";
 
-    private static final String BUSINESS_QUEUE_NAME="winning.dcg.event.collector.queue";
+    private static final String BUSINESS_QUEUE_NAME="my.direct.queue";
 
-    private static final String BUSINESS_ROUTING_KEY="winning.dcg.event.collector.queue";
+    private static final String BUSINESS_ROUTING_KEY="hello";
 
-    private static final String DEAD_EXCHANGE_NAME="winning.dcg.event.collector.dead.exchange";
+    private static final String DEAD_EXCHANGE_NAME="my.direct.dead.exchange";
 
-    private static final String DEAD_ROUTING_KEY="winning.dcg.event.collector.dead.exchange";
+    private static final String DEAD_ROUTING_KEY="dead";
 
-    private static final String DEAD_QUEUE_NAME="winning.dcg.event.collector.dead.queue";
+    private static final String DEAD_QUEUE_NAME="my.direct.dead.queue";
 
     /**
      * 我发现以下创建元数据(交换机,队列,绑定关系)的代码只有在代码中调用RabbitTemplate后
@@ -60,9 +60,13 @@ public class MyRabbitMqConfig {
     }
 
     /**
-     * 配置业务队列并设置持久化
-     *
+     * 将死信队列信息配置在业务队列上
      * @return
+     *
+     * RabbitMQ默认有一个exchange，叫default exchange，它用一个空字符串表示!!!，它是direct exchange类型，
+     * "x-dead-letter-exchange", ""
+     * 任何发往这个exchange的消息都会被路由到routing key的名字对应的队列上，如果没有对应的队列，则消息会被丢弃
+     *
      */
     @Bean
     public Queue createBusinessQueue() {

@@ -1,11 +1,17 @@
 package com.winning.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.util.JSONPObject;
 import com.rabbitmq.client.Channel;
 import com.winning.entity.EventNotifierInputDTO;
+import com.winning.entity.Person;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.amqp.support.converter.MessageConversionException;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -17,7 +23,10 @@ import java.util.concurrent.TimeUnit;
  */
 @Service
 @Slf4j
-public class ConsumerService {
+public class ConsumerService implements InitializingBean {
+
+    private Jackson2JsonMessageConverter jackson2JsonMessageConverter;
+
 
     /**
      * 自动进行应答
@@ -29,7 +38,7 @@ public class ConsumerService {
      * @param channel
      * @throws Exception
      */
-    @RabbitListener(queues = "winning.dcg.event.collector.queue")
+    //@RabbitListener(queues = "winning.dcg.event.collector.queue")
     public void consumeWithAutoAck(Message message,Channel channel) throws Exception{
         log.info("调用了consume!!!");
         EventNotifierInputDTO dto = new ObjectMapper().readValue(message.getBody(), EventNotifierInputDTO.class);
@@ -98,5 +107,33 @@ public class ConsumerService {
             /* 拒绝消息并回退queue */
             channel.basicReject(message.getMessageProperties().getDeliveryTag(),true);
         }
+    }
+
+    @RabbitListener(queues = "my.direct.queue")
+    public void test(Message message,Channel channel) throws IOException{
+        /* 用Person存的不能以String进行反序列化 */
+        System.out.println("a");
+        //Person person = (Person) jackson2JsonMessageConverter.fromMessage(message);
+        //log.info(person.toString());
+        //throw new MessageConversionException("a");
+        //channel.basicReject(message.getMessageProperties().getDeliveryTag(),false);
+        int j = 5 / 0;
+    }
+
+    //@RabbitListener(queues = "my.direct.queue")
+    public void test2(Message message,Channel channel) throws IOException{
+        /* 用Person存的不能以String进行反序列化 */
+        //System.out.println("b");
+        //Person person = (Person) jackson2JsonMessageConverter.fromMessage(message);
+        //log.info(person.toString());
+        //throw new MessageConversionException("a");
+        //channel.basicAck(message.getMessageProperties().getDeliveryTag(),true);
+        //int j = 5 / 0;
+    }
+
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        this.jackson2JsonMessageConverter = new Jackson2JsonMessageConverter();
     }
 }
