@@ -112,12 +112,12 @@ public class ConsumerService implements InitializingBean {
     @RabbitListener(queues = "my.direct.queue")
     public void test(Message message,Channel channel) throws IOException{
         /* 用Person存的不能以String进行反序列化 */
-        System.out.println("a");
+        //System.out.println("a");
         //Person person = (Person) jackson2JsonMessageConverter.fromMessage(message);
         //log.info(person.toString());
         //throw new MessageConversionException("a");
-        //channel.basicReject(message.getMessageProperties().getDeliveryTag(),false);
-        int j = 5 / 0;
+        channel.basicReject(message.getMessageProperties().getDeliveryTag(),false);
+        //int j = 5 / 0;
     }
 
     //@RabbitListener(queues = "my.direct.queue")

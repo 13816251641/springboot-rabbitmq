@@ -72,9 +72,11 @@ public class MyRabbitMqConfig {
     public Queue createBusinessQueue() {
         Map<String, Object> args = new HashMap<>(2);
         /*声明死信交换机*/
-        args.put("x-dead-letter-exchange",DEAD_EXCHANGE_NAME);
+        //args.put("x-dead-letter-exchange",DEAD_EXCHANGE_NAME);
+        args.put("x-dead-letter-exchange","");
         /*声明死信路由键*/
-        args.put("x-dead-letter-routing-key", DEAD_ROUTING_KEY);
+        //args.put("x-dead-letter-routing-key", DEAD_ROUTING_KEY);
+        args.put("x-dead-letter-routing-key", "my.direct.dead.queue");
         return QueueBuilder.durable(BUSINESS_QUEUE_NAME).withArguments(args).build();
     }
 
