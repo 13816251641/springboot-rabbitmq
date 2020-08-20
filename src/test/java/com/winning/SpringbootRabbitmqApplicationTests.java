@@ -5,6 +5,7 @@ import com.winning.service.ProduceService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.amqp.core.*;
+import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -12,6 +13,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * 测试消息的发送接收&&交换机的创建&&队列的创建&&绑定
@@ -67,10 +69,12 @@ public class SpringbootRabbitmqApplicationTests {
            rabbitTemplate.convertAndSend(exchange,routeKey,object);
            object默认当成消息体,只需要传入要发送的对象,自动序列化发送给rabbitmq,
            因为rabbitTemplate已经配置好了自定义序列化方式!!!
+           但是如果不配置CorrelationData那么当发送到exchange失败时,无法获知是哪一条消息失败;
+           如果object不用message包装,那么当消息从交换机到队列失败的话无法从message中获得id
         */
-
-        Person person = new Person().setAge(29).setName("陆哥哥").setSex("男");
-        rabbitTemplate.convertAndSend("my.direct.exchange","hello",person);
+        CorrelationData correlationData = new CorrelationData(UUID.randomUUID().toString());
+        Person person = new Person().setAge(29).setName("陆宝宝").setSex("男");
+        rabbitTemplate.convertAndSend("my.direct.exchange","hello",person,correlationData);
     }
 
     /**

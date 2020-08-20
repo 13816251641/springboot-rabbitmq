@@ -109,9 +109,9 @@ public class ConsumerService implements InitializingBean {
         }
     }
 
-    @RabbitListener(queues = "my.direct.queue")
+    //@RabbitListener(queues = "my.direct.queue")
     public void test(Message message,Channel channel) throws IOException{
-        /* 用Person存的不能以String进行反序列化 */
+        /* 用Person存的不能以String进行反序列化,必须强转为Person */
         //System.out.println("a");
         //Person person = (Person) jackson2JsonMessageConverter.fromMessage(message);
         //log.info(person.toString());

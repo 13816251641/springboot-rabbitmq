@@ -18,7 +18,7 @@ public class ExchangeCheckCallback implements RabbitTemplate.ConfirmCallback{
      */
     @Override
     public void confirm(CorrelationData correlationData, boolean ack, String cause) {
-        log.info("ExchangeCheckCallback,回调id:"+correlationData);
+        log.info("ExchangeCheckCallback,回调id:"+correlationData.getId());
         if(ack){
             /* 当ack为true的时候,代表消息已经写入日志并已落入磁盘 */
              log.info("消息发送到exchange成功");
