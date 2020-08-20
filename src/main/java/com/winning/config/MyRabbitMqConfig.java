@@ -8,6 +8,7 @@ import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.amqp.RabbitProperties;
 import org.springframework.boot.autoconfigure.amqp.RabbitRetryTemplateCustomizer;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnSingleCandidate;
 import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.context.annotation.Bean;
@@ -69,6 +70,7 @@ public class MyRabbitMqConfig {
      *
      */
     @Bean
+    @ConditionalOnProperty(prefix = "spring.rabbitmq.queueMap.autoGenerateEvent", name = "enabled")
     public Queue createBusinessQueue() {
         Map<String, Object> args = new HashMap<>(2);
         /*声明死信交换机*/

@@ -6,12 +6,18 @@ import com.rabbitmq.client.Channel;
 import com.winning.entity.EventNotifierInputDTO;
 import com.winning.entity.Person;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.core.AcknowledgeMode;
 import org.springframework.amqp.core.Message;
+import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
+import org.springframework.amqp.rabbit.listener.api.ChannelAwareMessageListener;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConversionException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -26,6 +32,12 @@ import java.util.concurrent.TimeUnit;
 public class ConsumerService implements InitializingBean {
 
     private Jackson2JsonMessageConverter jackson2JsonMessageConverter;
+
+    @Autowired
+    private Queue createBusinessQueue;
+
+    @Autowired
+    private ConnectionFactory connectionFactory;
 
 
     /**
@@ -131,9 +143,40 @@ public class ConsumerService implements InitializingBean {
         //int j = 5 / 0;
     }
 
+    /**
+     * 橙联使用的消费mq的方式
+     * 如果createBusinessQueue为null,不会报错但消息同时也不会消费
+     * @return
+     */
+    @Bean
+    public SimpleMessageListenerContainer acceptAutoGenerateEventTriggerConfigListenerContainer() {
+        SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
+        container.setQueues(createBusinessQueue);
+        container.setAcknowledgeMode(AcknowledgeMode.MANUAL);
+        container.setPrefetchCount(10);
+        container.setMessageListener((ChannelAwareMessageListener) (message, channel) -> {
+            try {
+                Person person = (Person) jackson2JsonMessageConverter.fromMessage(message);
+                channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);
+                log.info("正常消息，手动ACK");
+            } catch (Exception e) {
+                log.error("Receive Message Error", e);
+                //拒收消息，mq将消息写入死信队列
+                channel.basicReject(message.getMessageProperties().getDeliveryTag(), false);
+                log.error("消息消费异常，手动ACK");
+            }
+        });
+        return container;
+    }
+
 
     @Override
     public void afterPropertiesSet() throws Exception {
         this.jackson2JsonMessageConverter = new Jackson2JsonMessageConverter();
     }
+
+
+
+
+
 }

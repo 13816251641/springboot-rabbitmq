@@ -82,10 +82,11 @@ public class SpringbootRabbitmqApplicationTests {
      */
     @Test
     public void testSendMessageToFanoutExchange(){
+        CorrelationData correlationData = new CorrelationData(UUID.randomUUID().toString());
         Map<String,Object> map = new HashMap<>();
         map.put("msg","这是springboot发送的消息");
         map.put("age",32);
-        rabbitTemplate.convertAndSend("my.fanout.exchange","love",map);
+        rabbitTemplate.convertAndSend("my.fanout.exchange","ggg",map,correlationData);
     }
 
 }
