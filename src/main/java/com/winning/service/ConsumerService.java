@@ -39,6 +39,13 @@ public class ConsumerService implements InitializingBean {
     @Autowired
     private ConnectionFactory connectionFactory;
 
+    @RabbitListener(queues = "my.direct.queue")
+    public void consumeWithAuto(Channel channel) throws Exception{
+        System.out.println("wrong");
+        //int i = 5/0;
+        //throw new MessageConversionException("a");
+    }
+
 
     /**
      * 自动进行应答
@@ -51,7 +58,7 @@ public class ConsumerService implements InitializingBean {
      * @throws Exception
      */
     //@RabbitListener(queues = "winning.dcg.event.collector.queue")
-    public void consumeWithAutoAck(Message message,Channel channel) throws Exception{
+    public void consumeWithAutoAckAndRetry(Message message,Channel channel) throws Exception{
         log.info("调用了consume!!!");
         EventNotifierInputDTO dto = new ObjectMapper().readValue(message.getBody(), EventNotifierInputDTO.class);
         int i = 5/0;
@@ -148,7 +155,7 @@ public class ConsumerService implements InitializingBean {
      * 如果createBusinessQueue为null,不会报错但消息同时也不会消费
      * @return
      */
-    @Bean
+    //@Bean
     public SimpleMessageListenerContainer acceptAutoGenerateEventTriggerConfigListenerContainer() {
         SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
         container.setQueues(createBusinessQueue);

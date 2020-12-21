@@ -91,6 +91,8 @@ public class MyRabbitMqConfig {
     @Bean
     public Binding bindBusinessExchangeAndQueue() {
         /*链式写法: 用指定的路由键将队列绑定到交换机 */
+
+        // 1:队列的名字 2:队列的枚举 3:交换机的名字 4:routingKey
         return new Binding(BUSINESS_QUEUE_NAME, Binding.DestinationType.QUEUE, BUSINESS_EXCHANGE_NAME, BUSINESS_ROUTING_KEY, null);
     }
 
@@ -102,6 +104,8 @@ public class MyRabbitMqConfig {
     @Bean
     public Binding bindDeadExchangeAndDeadnQueue() {
         /*链式写法: 用指定的路由键将队列绑定到交换机*/
+
+        // 1:队列的名字 2:队列的枚举 3:交换机的名字 4:routingKey
         return new Binding(DEAD_QUEUE_NAME, Binding.DestinationType.QUEUE, DEAD_EXCHANGE_NAME, DEAD_ROUTING_KEY, null);
     }
 
