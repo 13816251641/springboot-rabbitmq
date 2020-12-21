@@ -28,40 +28,16 @@ import java.util.concurrent.TimeUnit;
     消费消息服务
  */
 @Slf4j
+@Service
 public class ConsumerService implements InitializingBean {
 
     private Jackson2JsonMessageConverter jackson2JsonMessageConverter;
 
     @Autowired
-    private Queue createDeadQueue;
+    private Queue createBusinessQueue;
 
     @Autowired
     private ConnectionFactory connectionFactory;
-
-    @RabbitListener(queues = "my.direct.queue")
-    public void consumeWithAuto(Channel channel) throws Exception{
-        System.out.println("wrong");
-        //int i = 5/0;
-        //throw new MessageConversionException("a");
-    }
-
-
-    /**
-     * 自动进行应答
-     * 配置xml中配置了ack为auto,并开启了retry设置,
-     * retry最大次数为3,当出现异常的时候会重试3次
-     * 后才会最终往外抛出异常,这里重试都是消费端的
-     * 事情和rabbitmq服务器没有关系
-     * @param message
-     * @param channel
-     * @throws Exception
-     */
-    @RabbitListener(queues = "winning.dcg.event.collector.queue")
-    public void consumeWithAutoAckAndRetry(Message message,Channel channel) throws Exception{
-        log.info("调用了consume!!!");
-        EventNotifierInputDTO dto = new ObjectMapper().readValue(message.getBody(), EventNotifierInputDTO.class);
-        int i = 5/0;
-    }
 
 
     /*
@@ -81,7 +57,7 @@ public class ConsumerService implements InitializingBean {
                true表示回退到queue中,false表示如果没有
                绑定死信队列,消息丢失
              */
-            /*channel.basicReject(message.getMessageProperties().getDeliveryTag(),true);*/
+            channel.basicReject(message.getMessageProperties().getDeliveryTag(),true);
         }catch (Exception e){
             log.info(e.getMessage());
         }
@@ -104,7 +80,7 @@ public class ConsumerService implements InitializingBean {
                true表示回退到queue中,false表示如果没有
                绑定死信队列,消息丢失
             */
-            /*channel.basicReject(message.getMessageProperties().getDeliveryTag(),true);*/
+            channel.basicReject(message.getMessageProperties().getDeliveryTag(),true);
         }catch (Exception e){
             log.info(e.getMessage());
         }
@@ -127,27 +103,24 @@ public class ConsumerService implements InitializingBean {
         }
     }
 
-    @RabbitListener(queues = "my.direct.queue")
+    //@RabbitListener(queues = "my.direct.queue")
     public void test(Message message,Channel channel) throws IOException{
         /* 用Person存的不能以String进行反序列化,必须强转为Person */
-        //System.out.println("a");
-        //Person person = (Person) jackson2JsonMessageConverter.fromMessage(message);
-        //log.info(person.toString());
-        //throw new MessageConversionException("a");
+        System.out.println("a");
+        Person person = (Person) jackson2JsonMessageConverter.fromMessage(message);
+        log.info(person.toString());
         channel.basicReject(message.getMessageProperties().getDeliveryTag(),false);
-        //int j = 5 / 0;
     }
 
-    @RabbitListener(queues = "my.direct.queue")
+    //@RabbitListener(queues = "my.direct.queue")
     public void test2(Message message,Channel channel) throws IOException{
         /* 用Person存的不能以String进行反序列化 */
-        //System.out.println("b");
-        //Person person = (Person) jackson2JsonMessageConverter.fromMessage(message);
-        //log.info(person.toString());
-        //throw new MessageConversionException("a");
-        //channel.basicAck(message.getMessageProperties().getDeliveryTag(),true);
-        //int j = 5 / 0;
+        System.out.println("b");
+        Person person = (Person) jackson2JsonMessageConverter.fromMessage(message);
+        log.info(person.toString());
+        channel.basicAck(message.getMessageProperties().getDeliveryTag(),true);
     }
+
 
     /**
      * 橙联使用的消费mq的方式
@@ -157,7 +130,7 @@ public class ConsumerService implements InitializingBean {
     //@Bean
     public SimpleMessageListenerContainer acceptAutoGenerateEventTriggerConfigListenerContainer() {
         SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
-        container.setQueues(createDeadQueue);
+        container.setQueues(createBusinessQueue);
         container.setAcknowledgeMode(AcknowledgeMode.MANUAL);
         container.setPrefetchCount(10);
         container.setMessageListener((ChannelAwareMessageListener) (message, channel) -> {
@@ -182,9 +155,4 @@ public class ConsumerService implements InitializingBean {
     public void afterPropertiesSet() throws Exception {
         this.jackson2JsonMessageConverter = new Jackson2JsonMessageConverter();
     }
-
-
-
-
-
 }

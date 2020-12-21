@@ -26,39 +26,20 @@ public class MyRabbitMqConfig {
 
     private static final String BUSINESS_ROUTING_KEY="hello";
 
-    private static final String DEAD_EXCHANGE_NAME="my.direct.dead.exchange";
-
-    private static final String DEAD_ROUTING_KEY="dead";
-
     private static final String DEAD_QUEUE_NAME="my.direct.dead.queue";
 
     /**
      * 我发现以下创建元数据(交换机,队列,绑定关系)的代码只有在代码中调用RabbitTemplate后
      * 才会去RabbitMq中创建元数据,项目启动时是不会去创建的!!!
+     *
+     *
      * 创建业务交换机(Direct)
      */
     @Bean
-    public Exchange createBusinessExchange(){
-        return new DirectExchange(BUSINESS_EXCHANGE_NAME);
+    public DirectExchange createBusinessExchange(){
+        return new DirectExchange(BUSINESS_EXCHANGE_NAME,true,false);
     }
 
-    /**
-     * 创建死信交换机(Direct)
-     * @return
-     */
-    @Bean
-    public Exchange createDeadLetterExchange() {
-        return new DirectExchange(DEAD_EXCHANGE_NAME);
-    }
-
-    /**
-     * 创建死信队列并设置该队列是持久化的
-     * @return
-     */
-    @Bean
-    public Queue createDeadQueue() {
-        return new Queue(DEAD_QUEUE_NAME,true);
-    }
 
     /**
      * 创建业务队列,并将死信队列信息配置在业务队列上
@@ -70,7 +51,6 @@ public class MyRabbitMqConfig {
      *
      */
     @Bean
-    @ConditionalOnProperty(prefix = "spring.rabbitmq.queueMap.autoGenerateEvent", name = "enabled")
     public Queue createBusinessQueue() {
         Map<String, Object> args = new HashMap<>(2);
         /*声明死信交换机*/
@@ -78,7 +58,7 @@ public class MyRabbitMqConfig {
         args.put("x-dead-letter-exchange","");//配置交换机(死信)
         /*声明死信路由键*/
         //args.put("x-dead-letter-routing-key", DEAD_ROUTING_KEY);
-        args.put("x-dead-letter-routing-key", "my.direct.dead.queue");
+        args.put("x-dead-letter-routing-key", DEAD_QUEUE_NAME);
         return QueueBuilder.durable(BUSINESS_QUEUE_NAME).withArguments(args).build();
     }
 
@@ -90,25 +70,8 @@ public class MyRabbitMqConfig {
      */
     @Bean
     public Binding bindBusinessExchangeAndQueue() {
-        /*链式写法: 用指定的路由键将队列绑定到交换机 */
-
-        // 1:队列的名字 2:队列的枚举 3:交换机的名字 4:routingKey
-        return new Binding(BUSINESS_QUEUE_NAME, Binding.DestinationType.QUEUE, BUSINESS_EXCHANGE_NAME, BUSINESS_ROUTING_KEY, null);
+        return BindingBuilder.bind(createBusinessQueue()).to(createBusinessExchange()).with(BUSINESS_ROUTING_KEY);
     }
-
-    /**
-     * 将死信队列绑定到死信交换机上
-     *
-     * @return
-     */
-    @Bean
-    public Binding bindDeadExchangeAndDeadnQueue() {
-        /*链式写法: 用指定的路由键将队列绑定到交换机*/
-
-        // 1:队列的名字 2:队列的枚举 3:交换机的名字 4:routingKey
-        return new Binding(DEAD_QUEUE_NAME, Binding.DestinationType.QUEUE, DEAD_EXCHANGE_NAME, DEAD_ROUTING_KEY, null);
-    }
-
 
 
     @Bean
@@ -174,7 +137,7 @@ public class MyRabbitMqConfig {
 
 
 
-    /***************************************************************************/
+    /******************************橙联方式*********************************************/
 
     /**
      * 创建Aquarius项目使用的消息交换器
