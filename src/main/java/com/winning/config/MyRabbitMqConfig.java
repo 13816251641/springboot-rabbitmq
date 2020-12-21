@@ -172,4 +172,91 @@ public class MyRabbitMqConfig {
         return new QueueCheckCallback();
     }
 
+
+
+    /***************************************************************************/
+
+    /**
+     * 创建Aquarius项目使用的消息交换器
+     * @return
+     * @author 陈宇霖
+     * @date 2017年11月08日14:50:55
+     */
+    @Bean
+    public DirectExchange commonDirectExchange() {
+        return new DirectExchange("commonBusinessExchange", true, false);
+    }
+
+
+
+    /**
+     * 创建扣费业务队列
+     * @return
+     * @author 陈宇霖
+     * @date 2017年12月14日13:51:50
+     */
+    @Bean
+    public Queue deductQueue() {
+        return QueueBuilder.durable("deductBusinessQueue") //队列名字
+                .withArgument("x-dead-letter-exchange", "") //发送交换机名字
+                .withArgument("x-dead-letter-routing-key", "deductBusinessDeadQueue") //发送交换机路由key
+                .build();
+    }
+
+    /**
+     * 创建公用业务Exchange与Queue的绑定关系
+     * @return
+     * @author 陈宇霖
+     * @date 2017年12月14日13:54:54
+     */
+    @Bean
+    public Binding deductBinding() {
+        return BindingBuilder.bind(deductQueue()).
+                to(commonDirectExchange()).
+                with("deductBusinessRoutingKey");
+    }
+
+    /**
+     * 扣费死信队列
+     * 如果死信队列消费失败的话会发往
+     * exchange:commonBusinessExchange
+     * routingKey如果没有指定默认就是原本路由到这个队列的routingKey,
+     * 这里就是:deductBusinessDeadQueue
+     * @return
+     * @author 陈宇霖
+     * @date 2017年12月14日13:54:57
+     */
+    @Bean
+    public Queue deductDeadLetterQueue() {
+        Map<String, Object> arguments = new HashMap<String, Object>();
+        arguments.put("x-dead-letter-exchange", "commonBusinessExchange");
+        return new Queue("deductBusinessDeadQueue", true, false, false, arguments);
+    }
+
+
+    /**
+     * 扣费死信队列与Exchange绑定关系
+     * @return
+     * @author 陈宇霖
+     * @date 2017年12月14日13:55:01
+     */
+    @Bean
+    public Binding deductDeadLetterBinding() {
+        return BindingBuilder.bind(deductDeadLetterQueue()).
+                to(commonDirectExchange()).
+                with("deductBusinessDeadQueue");
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
 }

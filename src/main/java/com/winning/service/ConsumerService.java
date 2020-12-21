@@ -27,14 +27,13 @@ import java.util.concurrent.TimeUnit;
 /*
     消费消息服务
  */
-@Service
 @Slf4j
 public class ConsumerService implements InitializingBean {
 
     private Jackson2JsonMessageConverter jackson2JsonMessageConverter;
 
     @Autowired
-    private Queue createBusinessQueue;
+    private Queue createDeadQueue;
 
     @Autowired
     private ConnectionFactory connectionFactory;
@@ -57,7 +56,7 @@ public class ConsumerService implements InitializingBean {
      * @param channel
      * @throws Exception
      */
-    //@RabbitListener(queues = "winning.dcg.event.collector.queue")
+    @RabbitListener(queues = "winning.dcg.event.collector.queue")
     public void consumeWithAutoAckAndRetry(Message message,Channel channel) throws Exception{
         log.info("调用了consume!!!");
         EventNotifierInputDTO dto = new ObjectMapper().readValue(message.getBody(), EventNotifierInputDTO.class);
@@ -70,7 +69,7 @@ public class ConsumerService implements InitializingBean {
         参数消息会灌满第一个消费者后才会灌满第二个消费者,默认第一个消费者会灌满
         Integer.MAX条数据
      */
-    /* @RabbitListener(queues = "myqueue") */
+    @RabbitListener(queues = "myqueue")
     public void receiveOne(Message message,Channel channel){
         try {
             TimeUnit.SECONDS.sleep(5);
@@ -93,7 +92,7 @@ public class ConsumerService implements InitializingBean {
        参数消息会灌满第一个消费者后才会灌满第二个消费者,默认第一个消费者会灌满
        Integer.MAX条数据
     */
-    /*@RabbitListener(queues = "myqueue")*/
+    @RabbitListener(queues = "myqueue")
     public void receiveTwo(Message message,Channel channel){
         try {
             TimeUnit.SECONDS.sleep(5);
@@ -114,7 +113,7 @@ public class ConsumerService implements InitializingBean {
     /*
        从消息中解析出entity
      */
-    /*@RabbitListener(queues = "myqueue")*/
+    @RabbitListener(queues = "myqueue")
     public void readMsg(Message message, Channel channel) throws IOException {
         try {
             log.info("readMsg");
@@ -128,7 +127,7 @@ public class ConsumerService implements InitializingBean {
         }
     }
 
-    //@RabbitListener(queues = "my.direct.queue")
+    @RabbitListener(queues = "my.direct.queue")
     public void test(Message message,Channel channel) throws IOException{
         /* 用Person存的不能以String进行反序列化,必须强转为Person */
         //System.out.println("a");
@@ -139,7 +138,7 @@ public class ConsumerService implements InitializingBean {
         //int j = 5 / 0;
     }
 
-    //@RabbitListener(queues = "my.direct.queue")
+    @RabbitListener(queues = "my.direct.queue")
     public void test2(Message message,Channel channel) throws IOException{
         /* 用Person存的不能以String进行反序列化 */
         //System.out.println("b");
@@ -158,7 +157,7 @@ public class ConsumerService implements InitializingBean {
     //@Bean
     public SimpleMessageListenerContainer acceptAutoGenerateEventTriggerConfigListenerContainer() {
         SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
-        container.setQueues(createBusinessQueue);
+        container.setQueues(createDeadQueue);
         container.setAcknowledgeMode(AcknowledgeMode.MANUAL);
         container.setPrefetchCount(10);
         container.setMessageListener((ChannelAwareMessageListener) (message, channel) -> {
@@ -175,6 +174,8 @@ public class ConsumerService implements InitializingBean {
         });
         return container;
     }
+
+
 
 
     @Override
