@@ -61,7 +61,7 @@ public class MyRabbitMqConfig {
     }
 
     /**
-     * 将死信队列信息配置在业务队列上
+     * 创建业务队列,并将死信队列信息配置在业务队列上
      * @return
      *
      * RabbitMQ默认有一个exchange，叫default exchange，它用一个空字符串表示!!!，它是direct exchange类型，
@@ -75,7 +75,7 @@ public class MyRabbitMqConfig {
         Map<String, Object> args = new HashMap<>(2);
         /*声明死信交换机*/
         //args.put("x-dead-letter-exchange",DEAD_EXCHANGE_NAME);
-        args.put("x-dead-letter-exchange","");
+        args.put("x-dead-letter-exchange","");//配置交换机(死信)
         /*声明死信路由键*/
         //args.put("x-dead-letter-routing-key", DEAD_ROUTING_KEY);
         args.put("x-dead-letter-routing-key", "my.direct.dead.queue");
