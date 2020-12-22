@@ -117,12 +117,14 @@ public class ConsumerService implements InitializingBean {
      * 橙联使用的消费mq的方式
      * 如果createBusinessQueue为null,不会报错但消息同时也不会消费
      * 这里发送端已经将对象转为json了!!!
+     * SimpleMessageListenerContainer默认确认方式为auto
      * @return
      */
     @Bean
     public SimpleMessageListenerContainer acceptAutoGenerateEventTriggerConfigListenerContainer() {
         SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
         container.setQueues(createBusinessQueue);
+        //container.setQueueNames("*****");也可以
         container.setAcknowledgeMode(AcknowledgeMode.MANUAL);
         container.setPrefetchCount(10);
         container.setMessageListener((ChannelAwareMessageListener) (message, channel) -> {
