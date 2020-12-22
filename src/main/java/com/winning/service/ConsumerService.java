@@ -1,5 +1,6 @@
 package com.winning.service;
 
+import com.alibaba.fastjson.JSON;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.util.JSONPObject;
 import com.rabbitmq.client.Channel;
@@ -45,7 +46,7 @@ public class ConsumerService implements InitializingBean {
         参数消息会灌满第一个消费者后才会灌满第二个消费者,默认第一个消费者会灌满
         Integer.MAX条数据
      */
-    @RabbitListener(queues = "myqueue")
+    //@RabbitListener(queues = "myqueue")
     public void receiveOne(Message message,Channel channel){
         try {
             TimeUnit.SECONDS.sleep(5);
@@ -68,7 +69,7 @@ public class ConsumerService implements InitializingBean {
        参数消息会灌满第一个消费者后才会灌满第二个消费者,默认第一个消费者会灌满
        Integer.MAX条数据
     */
-    @RabbitListener(queues = "myqueue")
+    //@RabbitListener(queues = "myqueue")
     public void receiveTwo(Message message,Channel channel){
         try {
             TimeUnit.SECONDS.sleep(5);
@@ -89,7 +90,7 @@ public class ConsumerService implements InitializingBean {
     /*
        从消息中解析出entity
      */
-    @RabbitListener(queues = "myqueue")
+    //@RabbitListener(queues = "myqueue")
     public void readMsg(Message message, Channel channel) throws IOException {
         try {
             log.info("readMsg");
@@ -106,28 +107,19 @@ public class ConsumerService implements InitializingBean {
     //@RabbitListener(queues = "my.direct.queue")
     public void test(Message message,Channel channel) throws IOException{
         /* 用Person存的不能以String进行反序列化,必须强转为Person */
-        System.out.println("a");
         Person person = (Person) jackson2JsonMessageConverter.fromMessage(message);
         log.info(person.toString());
-        channel.basicReject(message.getMessageProperties().getDeliveryTag(),false);
-    }
-
-    //@RabbitListener(queues = "my.direct.queue")
-    public void test2(Message message,Channel channel) throws IOException{
-        /* 用Person存的不能以String进行反序列化 */
-        System.out.println("b");
-        Person person = (Person) jackson2JsonMessageConverter.fromMessage(message);
-        log.info(person.toString());
-        channel.basicAck(message.getMessageProperties().getDeliveryTag(),true);
+        channel.basicReject(message.getMessageProperties().getDeliveryTag(),false);//拒绝且不回退队列
     }
 
 
     /**
      * 橙联使用的消费mq的方式
      * 如果createBusinessQueue为null,不会报错但消息同时也不会消费
+     * 这里发送端已经将对象转为json了!!!
      * @return
      */
-    //@Bean
+    @Bean
     public SimpleMessageListenerContainer acceptAutoGenerateEventTriggerConfigListenerContainer() {
         SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
         container.setQueues(createBusinessQueue);
@@ -135,7 +127,8 @@ public class ConsumerService implements InitializingBean {
         container.setPrefetchCount(10);
         container.setMessageListener((ChannelAwareMessageListener) (message, channel) -> {
             try {
-                Person person = (Person) jackson2JsonMessageConverter.fromMessage(message);
+                String content = new String(message.getBody());
+                Person person = JSON.parseObject(content, Person.class);
                 channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);
                 log.info("正常消息，手动ACK");
             } catch (Exception e) {
@@ -147,9 +140,6 @@ public class ConsumerService implements InitializingBean {
         });
         return container;
     }
-
-
-
 
     @Override
     public void afterPropertiesSet() throws Exception {

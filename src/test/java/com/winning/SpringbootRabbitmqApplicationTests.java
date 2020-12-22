@@ -1,5 +1,7 @@
 package com.winning;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.winning.entity.Person;
 import com.winning.service.ProduceService;
 import org.junit.Test;
@@ -24,37 +26,6 @@ public class SpringbootRabbitmqApplicationTests {
     @Autowired
     RabbitTemplate rabbitTemplate;
 
-    @Autowired
-    AmqpAdmin amqpAdmin;
-
-    /**
-     * 测试创建广播类型交换机&队列&绑定关系 OK
-     */
-    @Test
-    public void testCreateFanoutExchangeAndQueueAndBinding(){
-        /* 创建广播交换机 DirectExchange默认持久化 */
-        amqpAdmin.declareExchange(new FanoutExchange("my.fanout.exchange"));
-        /* 创建queue */
-        amqpAdmin.declareQueue(new Queue("my.fanout.queue",true));
-        /* 创建绑定关系 */
-        amqpAdmin.declareBinding(new Binding("my.fanout.queue",Binding.DestinationType.QUEUE,"my.fanout.exchange","bye",null));
-    }
-
-
-    /**
-     * 测试创建直连交换机&队列&绑定关系 OK
-     */
-    @Test
-    public void testCreateDirectExchangeAndQueueAndBinding(){
-        /* 创建直连交换机 DirectExchange默认持久化 */
-        amqpAdmin.declareExchange(new DirectExchange("my.direct.exchange"));
-        /* 创建queue */
-        amqpAdmin.declareQueue(new Queue("my.direct.queue",true));
-        /* 创建绑定关系 */
-        amqpAdmin.declareBinding(new Binding("my.direct.queue",Binding.DestinationType.QUEUE,"my.direct.exchange","hello",null));
-    }
-
-
 
     /**
      * 测试发送消息到直连交换机中 OK
@@ -74,19 +45,9 @@ public class SpringbootRabbitmqApplicationTests {
         */
         CorrelationData correlationData = new CorrelationData(UUID.randomUUID().toString());
         Person person = new Person().setAge(29).setName("陆宝宝").setSex("男");
-        rabbitTemplate.convertAndSend("my.direct.exchange","hello",person,correlationData);
+        String content = JSON.toJSONString(person);
+        rabbitTemplate.convertAndSend("my.direct.exchange","hello",content,correlationData);
     }
 
-    /**
-     * 测试发送消息到广播交换机中 OK
-     */
-    @Test
-    public void testSendMessageToFanoutExchange(){
-        CorrelationData correlationData = new CorrelationData(UUID.randomUUID().toString());
-        Map<String,Object> map = new HashMap<>();
-        map.put("msg","这是springboot发送的消息");
-        map.put("age",32);
-        rabbitTemplate.convertAndSend("my.fanout.exchange","ggg",map,correlationData);
-    }
 
 }
