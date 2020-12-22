@@ -20,13 +20,13 @@ import java.util.Map;
 
 @Configuration
 public class MyRabbitMqConfig {
-    private static final String BUSINESS_EXCHANGE_NAME="my.direct.exchange";
+    public static final String BUSINESS_EXCHANGE_NAME="my.direct.exchange";
 
-    private static final String BUSINESS_QUEUE_NAME="my.direct.queue";
+    public static final String BUSINESS_QUEUE_NAME="my.direct.queue";
 
-    private static final String BUSINESS_ROUTING_KEY="hello";
+    public static final String BUSINESS_ROUTING_KEY="hello";
 
-    private static final String DEAD_QUEUE_NAME="my.direct.dead.queue";
+    public static final String DEAD_QUEUE_NAME="my.direct.dead.queue";
 
     /**
      * 我发现以下创建元数据(交换机,队列,绑定关系)的代码只有在代码中调用RabbitTemplate后
@@ -74,14 +74,16 @@ public class MyRabbitMqConfig {
     }
 
 
-    @Bean
+    /*
+       加了序列化和函数回调的RabbitTemplate
+    */
     /* 加了@ConditionalOnSingleCandidate这个注解会导致自己定义的配置类无法注入 no reason */
-    /*@ConditionalOnSingleCandidate(ConnectionFactory.class)*/
-    public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory, RabbitProperties properties, ObjectProvider<RabbitRetryTemplateCustomizer> retryTemplateCustomizers) {
+    /* @ConditionalOnSingleCandidate(ConnectionFactory.class) */
+    public RabbitTemplate perfectRabbitTemplate(ConnectionFactory connectionFactory, RabbitProperties properties, ObjectProvider<RabbitRetryTemplateCustomizer> retryTemplateCustomizers) {
         PropertyMapper map = PropertyMapper.get();
         RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
-        MessageConverter messageConverter = new Jackson2JsonMessageConverter();
         /* 使用json序列化方式替换jdk序列化 */
+        MessageConverter messageConverter = new Jackson2JsonMessageConverter();
         rabbitTemplate.setMessageConverter(messageConverter);
 
         /*
@@ -90,6 +92,7 @@ public class MyRabbitMqConfig {
          * 每个rabbitTemplate只能有一个confirm-callback和return-callback
          */
         rabbitTemplate.setConfirmCallback(createExchangeCheckCallback());
+
 
         /*
          * 使用return-callback时必须设置mandatory为true，
@@ -100,9 +103,8 @@ public class MyRabbitMqConfig {
         rabbitTemplate.setReturnCallback(createQueueCheckCallback());
         rabbitTemplate.setMandatory(true);
 
-        /*
-          利用lambda表达式从配置文件中取得默认值并赋值到rabbitTemplate中
-         */
+
+        /* 利用lambda表达式从配置文件中取得默认值并赋值到rabbitTemplate中 */
         RabbitProperties.Template template = properties.getTemplate();
         template.getClass();
         map.from(template::getReceiveTimeout).whenNonNull().as(Duration::toMillis).to(rabbitTemplate::setReceiveTimeout);
@@ -116,6 +118,10 @@ public class MyRabbitMqConfig {
         map.from(template::getQueue).whenNonNull().to(rabbitTemplate::setQueue);
         return rabbitTemplate;
     }
+
+
+
+
 
     /**
      * 关于 ExchangeCheckCallback 和 QueueCheckCallback 的回调说明：
@@ -193,7 +199,7 @@ public class MyRabbitMqConfig {
     public Queue deductDeadLetterQueue() {
         Map<String, Object> arguments = new HashMap<String, Object>();
         arguments.put("x-dead-letter-exchange", "commonBusinessExchange");
-        return new Queue("deductBusinessDeadQueue", true, false, false, arguments);
+        return QueueBuilder.durable("deductBusinessDeadQueue").withArguments(arguments).build();
     }
 
 

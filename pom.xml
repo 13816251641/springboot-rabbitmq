@@ -39,6 +39,11 @@
             <artifactId>spring-boot-devtools</artifactId>
             <optional>true</optional>  <!--热部署模块 -->
         </dependency>
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+            <version>1.2.75</version>
+        </dependency>
        <!--
             本项目暂时不用tkmapper
             <dependency>
